@@ -1,0 +1,51 @@
+const express = require("express");
+const app = express();
+const cors = require("cors");
+const port = 3042;
+
+app.use(cors());
+app.use(express.json());
+
+const balances = {
+  "043fce2ef4210f0b63b77dae000fa4b701f04fa2bc605123979dea57bc9c250f7221855b24902163416946a3cc5aaa97317340abc1d1ac1d9681dae591f10865c6": 100,
+  "041ff1da158d39ef8c1c1b3792d7af6ec05bf208c7b130ec24623c1f25f4da277d79438ae438286c1cdf1504d0b00efed87a7ed0b0b84409ddc572e872d22e66a9": 50,
+  "044547167ddbd2f3ad9f26fdf0e9b3b115275beacc235fe5738972496668f8fd0ca6082eb37e6ef00cd5ac0a807521a0e5e156503291a08410363344fc1428d266": 75,
+};
+
+app.get("/balance/:address", (req, res) => {
+  const { address } = req.params;
+  const balance = balances[address] || 0;
+  res.send({ balance });
+});
+
+app.post("/send", (req, res) => {
+  async function signMessage() {
+    return secp.sign(PrivateKey, { recovered: true });
+
+  }
+  async function recoverKey(signature, recoveryBit) {
+    return secp.recoverPublicKey(signature, recoveryBit);
+  }
+  const { sender, recipient, amount } = req.body;
+
+  setInitialBalance(sender);
+  setInitialBalance(recipient);
+
+  if (balances[sender] < amount) {
+    res.status(400).send({ message: "Not enough funds!" });
+  } else {
+    balances[sender] -= amount;
+    balances[recipient] += amount;
+    res.send({ balance: balances[sender] });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}!`);
+});
+
+function setInitialBalance(address) {
+  if (!balances[address]) {
+    balances[address] = 0;
+  }
+}
